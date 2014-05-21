@@ -1,7 +1,9 @@
 package nodes
 
-import "errors"
-import "fmt"
+import (
+	"../logger"
+	"errors"
+)
 
 type DataNode struct {
 	tuples []*Tuple
@@ -42,9 +44,7 @@ func (dn *DataNode) Insert(t *Tuple) (Node, error) {
 		//insert
 		toInsert.insertTuple(t)
 		//log
-		fmt.Print("splitting data node")
-		fmt.Print(dn.tuples)
-		fmt.Println(rtn.tuples)
+		logger.Debug().Println("splitting data node %v  %v", dn.tuples, rtn.tuples)
 
 		return rtn, nil
 	}

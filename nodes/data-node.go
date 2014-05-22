@@ -7,6 +7,7 @@ import (
 
 type DataNode struct {
 	tuples []*Tuple
+	prop   *NodeP
 }
 
 func (dn *DataNode) MinKey() (int64, error) {
@@ -19,20 +20,22 @@ func (dn *DataNode) MinKey() (int64, error) {
 	}
 }
 
-func (dn *DataNode) Insert(t *Tuple) (Node, error) {
+func (dn *DataNode) Insert(t *Tuple) Node {
 	if t.Key <= 0 {
-		return nil, errors.New("Invalid Index key " + string(t.Key))
+		logger.Error().Println("Invalid index %v needs to be > 0", t.Key)
+		return nil
 	}
-	if len(dn.tuples) < maxKeysDn() {
+	if len(dn.tuples) < dn.prop.GetMaxKeysDn() {
 		//insert
 		dn.insertTuple(t)
-		return nil, nil
+		return nil
 	} else {
 		//create a new data node for data to be split into
 		rtn := new(DataNode)
+		rtn.prop = dn.prop
 		//split the nodes.
-		rtn.tuples = dn.tuples[minKeysDn():]
-		dn.tuples = dn.tuples[:minKeysDn()]
+		rtn.tuples = dn.tuples[dn.prop.GetMinKeysDn():]
+		dn.tuples = dn.tuples[:dn.prop.GetMinKeysDn()]
 
 		var toInsert *DataNode = nil
 		//find which node the tuple should be inserted into
@@ -46,7 +49,7 @@ func (dn *DataNode) Insert(t *Tuple) (Node, error) {
 		//log
 		logger.Debug().Println("splitting data node %v  %v", dn.tuples, rtn.tuples)
 
-		return rtn, nil
+		return rtn
 	}
 }
 

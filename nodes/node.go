@@ -14,7 +14,7 @@ func minKeysIn() int {
 }
 
 type Node interface {
-	Insert(t *Tuple) (Node, error)
+	Insert(t *Tuple) Node
 	MinKey() (int64, error)
 }
 

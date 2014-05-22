@@ -2,8 +2,16 @@ package nodes
 
 import "testing"
 
+func getSettings() *NodeP {
+	prop := new(NodeP)
+	prop.SetMaxKeysDn(4)
+	prop.SetMaxKeysIn(4)
+	return prop
+}
+
 func TestInsertOne_MinKeysIsSame(t *testing.T) {
 	d := new(DataNode)
+	d.prop = getSettings()
 	tu := new(Tuple)
 	tu.Key = 5
 	d.Insert(tu)
@@ -19,6 +27,7 @@ func TestInsertOne_MinKeysIsSame(t *testing.T) {
 
 func TestInsertOutOfOrder_MinKeyIsRight(t *testing.T) {
 	d := new(DataNode)
+	d.prop = getSettings()
 	tu := new(Tuple)
 	tu.Key = 5
 	d.Insert(tu)

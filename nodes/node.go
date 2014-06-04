@@ -1,21 +1,11 @@
 package nodes
 
-func maxKeysDn() int {
-	return 4
-}
-func maxKeysIn() int {
-	return 4
-}
-func minKeysDn() int {
-	return maxKeysDn() / 2
-}
-func minKeysIn() int {
-	return maxKeysIn() / 2
-}
-
 type Node interface {
 	Insert(t *Tuple) Node
-	MinKey() (int64, error)
+	MinKey() int64
+	Dump(level int)
+	Find(key int64) *Tuple
+	SetProp(prop *NodeP)
 }
 
 type Tuple struct {

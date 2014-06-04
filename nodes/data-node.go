@@ -2,7 +2,6 @@ package nodes
 
 import (
 	"../logger"
-	"errors"
 )
 
 type DataNode struct {
@@ -10,59 +9,84 @@ type DataNode struct {
 	prop   *NodeP
 }
 
-func (dn *DataNode) MinKey() (int64, error) {
+func (this *DataNode) SetProp(prop *NodeP) {
+	this.prop = prop
+}
+
+func (this *DataNode) MinKey() int64 {
 	//nil check
-	if dn.tuples != nil {
+	if this.tuples != nil {
 		//return the tuple
-		return dn.tuples[0].Key, nil
+		return this.tuples[0].Key
 	} else {
-		return -1, errors.New("No tuples in the data node.")
+		panic("There are no tuples in the data node")
 	}
 }
 
-func (dn *DataNode) Insert(t *Tuple) Node {
-	if t.Key <= 0 {
-		logger.Error().Println("Invalid index %v needs to be > 0", t.Key)
+func (this *DataNode) Insert(t *Tuple) Node {
+	if t.Key < 0 {
+		logger.Error().Println("Invalid index %v needs to be >= 0", t.Key)
 		return nil
 	}
-	if len(dn.tuples) < dn.prop.GetMaxKeysDn() {
+	if len(this.tuples) < this.prop.GetMaxKeysDn() {
 		//insert
-		dn.insertTuple(t)
+		this.insertTuple(t)
 		return nil
 	} else {
 		//create a new data node for data to be split into
 		rtn := new(DataNode)
-		rtn.prop = dn.prop
+		rtn.prop = this.prop
 		//split the nodes.
-		rtn.tuples = dn.tuples[dn.prop.GetMinKeysDn():]
-		dn.tuples = dn.tuples[:dn.prop.GetMinKeysDn()]
+		rtn.tuples = this.tuples[this.prop.GetMinKeysDn():]
+		this.tuples = this.tuples[:this.prop.GetMinKeysDn()]
 
 		var toInsert *DataNode = nil
 		//find which node the tuple should be inserted into
 		if t.Key < rtn.tuples[0].Key {
-			toInsert = dn
+			toInsert = this
 		} else {
 			toInsert = rtn
 		}
 		//insert
 		toInsert.insertTuple(t)
 		//log
-		logger.Debug().Println("splitting data node %v  %v", dn.tuples, rtn.tuples)
+		logger.Debug().Println("splitting data node", this.tuples, rtn.tuples)
 
 		return rtn
 	}
 }
 
-func (dn *DataNode) insertTuple(t *Tuple) {
+func (this *DataNode) insertTuple(t *Tuple) {
 	//loop over the slice
-	for i := 0; i < len(dn.tuples); i++ {
+	for i := 0; i < len(this.tuples); i++ {
 		//find the index where the new tuple goes (sorted order)
-		if t.Key < dn.tuples[i].Key {
+		if t.Key < this.tuples[i].Key {
 			//insert using append
-			dn.tuples = append(dn.tuples[:i], append([]*Tuple{t}, dn.tuples[i:]...)...)
+			this.tuples = append(this.tuples[:i], append([]*Tuple{t}, this.tuples[i:]...)...)
 			return //we are done
 		}
 	}
 	//if it wasn't found stick it on the end
-	dn.tuples = append(dn.tuples, t)
+	this.tuples = append(this.tuples, t)
+}
+
+func (this *DataNode) Dump(level int) {
+	log := ""
+	for i := 0; i < level; i++ {
+		log += "\t"
+	}
+
+	for i := 0; i < len(this.tuples); i++ {
+		log += string(this.tuples[i].Key) + " "
+	}
+	logger.Debug().Println(log)
+}
+
+func (this *DataNode) Find(key int64) *Tuple {
+	for i := 0; i < len(this.tuples); i++ {
+		if this.tuples[i].Key == key {
+			return this.tuples[i]
+		}
+	}
+	return nil
 }

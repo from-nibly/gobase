@@ -36,7 +36,7 @@ func Init(traceHandle io.Writer, infoHandle io.Writer,
 		log.Ldate|log.Ltime|log.Lshortfile)
 
 	debug = log.New(debugHandle,
-		"DEBUG:",
+		"DEBUG: ",
 		log.Ldate|log.Ltime|log.Lshortfile)
 }
 
